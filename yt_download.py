@@ -5,8 +5,8 @@ import os
 import re
 
 
-def rename_files() -> None:
-    for filename in glob.glob('*.mp3'):
+def rename_files(folder: str = os.getcwd()) -> None:
+    for filename in glob.glob(os.path.join(folder, '*.mp3')):
         pattern = re.compile(r' [(\[](?:Remaster|Remastered|Ft|Ft\.|Feat\.|Feat|Official|\d).*[\[)]')
         fo = re.search(pattern, filename)
 
@@ -17,7 +17,7 @@ def rename_files() -> None:
 
 
 class YTDownload:
-    def __init__(self, settings, dlfolder) -> None:
+    def __init__(self, settings: dict, dlfolder: str) -> None:
         self.settings = settings
         self.dlfolder = dlfolder
 
@@ -37,7 +37,7 @@ class YTDownload:
         self.download()
         rename_files()
 
-    def check_playlists(self):
+    def check_playlists(self) -> None:
         for i in range(len(self.links)):
             link = self.links[i]
             if '&list=' in link:
@@ -48,7 +48,7 @@ class YTDownload:
                 if input().lower() == 'n':
                     self.links[i] = video_url
 
-    def download(self):
+    def download(self) -> None:
         for link in self.links:
             with yt_dlp.YoutubeDL(self.settings) as ydl:
                 try:
