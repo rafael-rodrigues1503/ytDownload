@@ -5,8 +5,8 @@ import os
 import re
 
 
-def rename_files(folder: str = os.getcwd()) -> None:
-    for filename in glob.glob(os.path.join(folder, '*.mp3')):
+def rename_mp3_file() -> None:
+    for filename in glob.glob('*.mp3'):
         pattern = re.compile(r' [(\[](?:Remaster|Remastered|Ft|Ft\.|Feat\.|Feat|Official|\d).*[\[)]')
         fo = re.search(pattern, filename)
 
@@ -17,15 +17,25 @@ def rename_files(folder: str = os.getcwd()) -> None:
 
 
 class YTDownload:
-    def __init__(self, settings: dict, dlfolder: str) -> None:
+    def __init__(self, settings: dict, dlfolder: str = str(Path.home() / "Downloads")) -> None:
         self.settings = settings
         self.dlfolder = dlfolder
-
-        os.chdir(self.dlfolder)
-
         self.links = []
-        n = 1
+
+    def _check_playlists(self) -> None:
+        for i in range(len(self.links)):
+            link = self.links[i]
+            if '&list=' in link:
+                video_url = link.split("&list=")[0]
+                playlist = link.split("&list=")[1].split("&index=")[0]
+                print(f"Download playlist {playlist}? (Y/n)")
+
+                if input().lower() == 'n':
+                    self.links[i] = video_url
+
+    def get_links(self):
         print('Enter YouTube URLs:')
+        n = 1
         while True:
             link = input(f'{n}. ')
             if not link:
@@ -33,41 +43,31 @@ class YTDownload:
             self.links.append(link)
             n += 1
 
-        self.check_playlists()
-        self.download()
-        rename_files()
-
-    def check_playlists(self) -> None:
-        for i in range(len(self.links)):
-            link = self.links[i]
-            if '&list=' in link:
-                video_url = link.split("&list=")[0]
-                playlist = link.split("&list=")[1].split("&index=")[0]
-                print(f"Download playlist {playlist}? (Y/N)")
-
-                if input().lower() == 'n':
-                    self.links[i] = video_url
-
     def download(self) -> None:
+        self._check_playlists()
+        os.chdir(self.dlfolder)
         for link in self.links:
             with yt_dlp.YoutubeDL(self.settings) as ydl:
                 try:
                     ydl.cache.remove()
                     ydl.download([link])
+                    rename_mp3_file()
                 except yt_dlp.DownloadError:
                     print(f"Couldn't download {link}")
 
 
 if __name__ == "__main__":
-    dlfolder_ = str(Path.home() / "Downloads")
     settings_ = {
         'format': 'bestaudio/best',
         'postprocessors': [{
             'key': 'FFmpegExtractAudio',
             'preferredcodec': 'mp3',
-            'preferredquality': '320',
+            'preferredquality': '320'
         }],
-        'outtmpl': '/%(title)s.%(ext)s'
+        'outtmpl': '/%(title)s.%(ext)s',
+        'ffmpeg_location': os.path.join(os.getcwd(), 'ffmpeg.exe')
     }
 
-    ytd = YTDownload(settings_, dlfolder_)
+    ytd = YTDownload(settings_)
+    ytd.get_links()
+    ytd.download()
