@@ -23,7 +23,7 @@ playlists = []
 print("Get links from text file? (y/N)")
 if input().lower() == 'y':
     # Get links from text file
-    with open('links.txt', 'r') as f:
+    with open('D:\\Code\\ytDownload\\links.txt', 'r') as f:
         for line in f.read().split('\n'):
             links.append(line)
 
@@ -38,14 +38,15 @@ else:
         links.append(link)
         n += 1
 
-for li in links:
+for i in range(len(links)):
+    li = links[i]
     if '&list=' in li:
         video_url = li.split("&list=")[0]
         playlist_id = li.split("&list=")[1].split("&index=")[0]
 
         print(f"Download playlist {playlist_id}? (Y/n)")
         if input().lower() == 'n':
-            links.append(video_url)
+            links[i] = video_url
             continue
 
 
