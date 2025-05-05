@@ -63,10 +63,17 @@ for link in links:
 
 # Rename .mp3 files
 for filename in glob.glob('*.mp3'):
-    pattern = re.compile(r' [(\[](?:Remaster|Remastered|Ft|Ft\.|Feat\.|Feat|Official|\d).*[\[)]')
-    fo = re.search(pattern, filename)
-
+    new_filename = filename
+    rename = False
+    if filename.startswith('SpotiDownloader.com - '):
+        new_filename = filename[22:].split(' -')[0] + '.mp3'
+        rename = True
+    pattern = re.compile(r' (?:\(|\[)(?:[Rr]emaster(?:ed)?|[Ff](?:ea)?t(?:\.)?|[Oo]fficial|\d).*(?:\)|])')
+    fo = re.search(pattern, new_filename)
     if fo:
-        new_filename = re.sub(pattern, '', filename)
+        new_filename= re.sub(pattern, '', new_filename)
+        os.rename(filename, new_filename)
+        print(f'Renamed {filename} to {new_filename}')
+    if rename:
         os.rename(filename, new_filename)
         print(f'Renamed {filename} to {new_filename}')
